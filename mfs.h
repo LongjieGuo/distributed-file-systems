@@ -1,4 +1,5 @@
-#ifndef __MFS_h__
+#ifndef __MFS_h__  //ifndef checks whether the given token 
+                   //has been #defined earlier in the file or in an included file
 #define __MFS_h__
 
 #define MFS_DIRECTORY    (0)
@@ -27,4 +28,4 @@ int MFS_Creat(int pinum, int type, char *name);
 int MFS_Unlink(int pinum, char *name);
 int MFS_Shutdown();
 
-#endif // __MFS_h__
+#endif // if not, it includes the code between it and the closing #endif statement. 
