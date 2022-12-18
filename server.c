@@ -18,6 +18,7 @@ int fd;
 struct sockaddr_in addr;
 int port_number;
 
+int file_fd;
 void *fs_img;
 super_t *super_block;
 unsigned int *inode_bitmap;
@@ -109,10 +110,50 @@ int fs_stat(int inum, MFS_Stat_t *m){
 }
 
 int fs_write(int inum, char *buffer, int offset, int nbytes){
+    if (get_bit(inode_bitmap, inum) == 0) {
+        return -1;
+    }
+    if (nbytes < 0 || nbytes > MFS_BLOCK_SIZE) {
+        return -1;
+    }
+    inode_t *inode = inodes + inum * sizeof(inode_t);
+    if (inode->type == MFS_DIRECTORY) {
+        return -1;
+    }
     return 0;
 }
 
 int fs_read(int inum, char *buffer, int offset, int nbytes) {
+    if (get_bit(inode_bitmap, inum) == 0) {
+        return -1;
+    }
+    inode_t *inode = inodes + inum * sizeof(inode_t);
+    if (offset + nbytes > inode->size) {
+        return -1;
+    }
+
+    // only need to consider write/read 1/2 block(s)
+    int start_block = offset / UFS_BLOCK_SIZE;
+    int start_byte = offset - (start_block) * UFS_BLOCK_SIZE;
+    if (start_byte + nbytes > UFS_BLOCK_SIZE) {
+        // when spanning across two blocks
+        if (inode->direct[start_block] == -1) {
+            return -1;
+        }
+        void *data_addr = fs_img + inode->direct[start_block] * UFS_BLOCK_SIZE + start_byte;
+        memcpy(buffer, data_addr, UFS_BLOCK_SIZE - start_byte);
+        if (inode->direct[start_block+1] == -1) {
+            return -1;
+        }
+        data_addr = fs_img + inode->direct[start_block+1] * UFS_BLOCK_SIZE;
+        memcpy(buffer + (UFS_BLOCK_SIZE - start_byte), data_addr, nbytes-(UFS_BLOCK_SIZE - start_byte));
+    } else {
+        if (inode->direct[start_block] == -1) {
+            return -1;
+        }
+        void *data_addr = fs_img + inode->direct[start_block] * UFS_BLOCK_SIZE + start_byte;
+        memcpy(buffer, data_addr, nbytes);
+    }
     return 0;
 }
 
@@ -148,7 +189,7 @@ int server_start(int port, char* img_path){
     }
 
     // read disk image, process meta data
-    int file_fd = open(img_path, O_RDWR | O_APPEND);
+    file_fd = open(img_path, O_RDWR | O_APPEND);
     struct stat finfo;
     if (fstat(file_fd, &finfo) != 0) {
         perror("Fstat failed");
@@ -171,6 +212,11 @@ int server_start(int port, char* img_path){
     // int rc = fs_stat(0, &stat);
     // printf("rc = %d, type = %d, size = %d\n", rc, stat.type, stat.size);
 
+
+    // test read
+    char str[100];
+    int rc = fs_read(0, str, 0, 64);
+    printf("rc = %d, %s\n", rc, str);
 
     // uncomment for actual use
     /*
