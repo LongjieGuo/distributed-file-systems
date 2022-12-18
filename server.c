@@ -113,12 +113,50 @@ int fs_write(int inum, char *buffer, int offset, int nbytes){
     if (get_bit(inode_bitmap, inum) == 0) {
         return -1;
     }
-    if (nbytes < 0 || nbytes > MFS_BLOCK_SIZE) {
+    if (nbytes < 0 || nbytes > UFS_BLOCK_SIZE) {
         return -1;
     }
     inode_t *inode = inodes + inum * sizeof(inode_t);
     if (inode->type == MFS_DIRECTORY) {
         return -1;
+    }
+
+    // make sure we have enough data blocks, otherwise fail
+    int total_size = offset + nbytes;
+    int block_needed = total_size / UFS_BLOCK_SIZE + 1;
+    for (int i = 0; i < block_needed ; i++) {
+        if (inode->direct[i] == -1) {
+            int free_block = get_free_data_block();
+            if (free_block == -1) {
+                return -1;
+            }
+            inode->direct[i] = free_block;
+        }
+    }
+
+    // only need to consider writing/reading 1/2 block(s)
+    int start_block = offset / UFS_BLOCK_SIZE;
+    int start_byte = offset - start_block * UFS_BLOCK_SIZE;
+    if (start_byte + nbytes >= UFS_BLOCK_SIZE) {
+        if (inode->direct[start_block] == -1) {
+            return -1;
+        }
+        void *data_addr = fs_img + inode->direct[start_block] * UFS_BLOCK_SIZE + start_byte;
+        memcpy(data_addr, buffer, UFS_BLOCK_SIZE - start_byte);
+        if (inode->direct[start_block+1] == -1) {
+            return -1;
+        }
+        data_addr = fs_img + inode->direct[start_block+1] * UFS_BLOCK_SIZE;
+        memcpy(data_addr, buffer + (UFS_BLOCK_SIZE - start_byte), nbytes-(UFS_BLOCK_SIZE - start_byte));
+    } else {
+        if (inode->direct[start_block] == -1) {
+            return -1;
+        }
+        void *data_addr = fs_img + inode->direct[start_block] * UFS_BLOCK_SIZE + start_byte;
+        memcpy(data_addr, buffer, nbytes);
+    }
+    if (inode->size < total_size) {
+        inode->size = total_size;
     }
     return 0;
 }
@@ -132,11 +170,11 @@ int fs_read(int inum, char *buffer, int offset, int nbytes) {
         return -1;
     }
 
-    // only need to consider write/read 1/2 block(s)
     int start_block = offset / UFS_BLOCK_SIZE;
-    int start_byte = offset - (start_block) * UFS_BLOCK_SIZE;
-    if (start_byte + nbytes > UFS_BLOCK_SIZE) {
+    int start_byte = offset - start_block * UFS_BLOCK_SIZE;
+    if (start_byte + nbytes >= UFS_BLOCK_SIZE) {
         // when spanning across two blocks
+        // this code needs further testing
         if (inode->direct[start_block] == -1) {
             return -1;
         }
@@ -157,7 +195,10 @@ int fs_read(int inum, char *buffer, int offset, int nbytes) {
     return 0;
 }
 
-int fs_creat(int inum, int type, char *name) {
+int fs_creat(int pinum, int type, char *name) {
+    if (get_bit(inode_bitmap, pinum) == 0) {
+        return -1;
+    }
     return 0;
 }
 
@@ -212,11 +253,10 @@ int server_start(int port, char* img_path){
     // int rc = fs_stat(0, &stat);
     // printf("rc = %d, type = %d, size = %d\n", rc, stat.type, stat.size);
 
-
-    // test read
-    char str[100];
-    int rc = fs_read(0, str, 32, 32);
-    printf("rc = %d, %s\n", rc, str);
+    // test read (sanity)
+    // char str[100];
+    // int rc = fs_read(0, str, 32, 32);
+    // printf("rc = %d, %s\n", rc, str);
 
     // uncomment for actual use
     /*
