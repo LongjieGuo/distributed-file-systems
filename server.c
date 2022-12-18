@@ -89,7 +89,8 @@ int fs_lookup(int pinum, char *name) {
     return -1;
 }
 
-int fs_stat(int inum){
+int fs_stat(int inum, MFS_Stat_t *m){
+    /*
     message_t reply;
     int inode_block = super_block->inode_region_addr + (inum * sizeof(inode_t)) / UFS_BLOCK_SIZE; 
 
@@ -107,7 +108,7 @@ int fs_stat(int inum){
         reply.stat.type = inode.type;
     }
     int rc = UDP_Write(sd, &addr, (char*)&reply, sizeof(message_t));
-    return rc;
+    return rc;*/
 }
 
 int fs_write(int inum, char *buffer, int offset, int nbytes){
@@ -166,6 +167,12 @@ int server_start(int port, char* img_path){
     data = fs_img + super_block->data_region_addr * UFS_BLOCK_SIZE;
     // int max_inodes = super_block->inode_bitmap_len * sizeof(unsigned int) * 8;
     
+    /* testing lookup */
+    printf("result for pinum=0 .: %d\n", fs_lookup(0, "."));
+    printf("result for pinum=1 ..: %d\n", fs_lookup(0, ".."));
+
+
+    /*
     while (1) {
         message_t *request = malloc(sizeof(message_t));
         message_t *response = malloc(sizeof(message_t));
@@ -207,6 +214,7 @@ int server_start(int port, char* img_path){
         response->rc = fs_rc;
 
     }
+    */
     return 0;
 }
 
