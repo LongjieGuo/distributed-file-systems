@@ -90,6 +90,9 @@ int fs_lookup(int pinum, char *name) {
 }
 
 int fs_stat(int inum, MFS_Stat_t *m){
+    if (get_bit(inode_bitmap, inum) == 0) {
+        return -1;
+    }
     /*
     message_t reply;
     int inode_block = super_block->inode_region_addr + (inum * sizeof(inode_t)) / UFS_BLOCK_SIZE; 
@@ -170,6 +173,8 @@ int server_start(int port, char* img_path){
     /* testing lookup */
     printf("result for pinum=0 .: %d\n", fs_lookup(0, "."));
     printf("result for pinum=1 ..: %d\n", fs_lookup(0, ".."));
+
+    /* testing stat */
 
 
     /*

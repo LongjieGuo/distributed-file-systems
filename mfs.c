@@ -51,7 +51,7 @@ int MFS_Lookup(int pinum, char* name){
     request.inum = pinum;
     strncpy(request.name,name,28);
     //request.name = name;
-    int rc = send_request(request, response,  serverAddress, serverPort);
+    int rc = send_request(request, &response,  serverAddress, serverPort);
     return rc;
 }
 
@@ -59,7 +59,7 @@ int MFS_Stat(int inum, MFS_Stat_t *stats){
     message_t request,response;
     request.requestType = 3;
     request.inum = inum;
-    int rc = send_request(request, response,  serverAddress, serverPort);
+    int rc = send_request(request, &response,  serverAddress, serverPort);
     return rc;
 }
 
@@ -72,7 +72,7 @@ int MFS_Write(int inum, char *buffer, int offset, int nbytes){
     request.inum = inum;
     request.offset = offset;
     request.nbytes = nbytes;
-    int rc = send_request(request, response,  serverAddress, serverPort);
+    int rc = send_request(request, &response,  serverAddress, serverPort);
     return rc;
 }        
 
@@ -85,7 +85,7 @@ int MFS_Read(int inum, char *buffer, int offset, int nbytes){
     request.inum = inum;
     request.offset = offset;
     request.nbytes = nbytes;
-    int rc = send_request(request, response,  serverAddress, 
+    int rc = send_request(request, &response,  serverAddress, 
     serverPort);
     return rc;
 }      
@@ -98,7 +98,7 @@ int MFS_Creat(int pinum, int type, char *name){
     request.type = type;
     //request.name =name;
     strncpy(request.name,name,28);
-    int rc = send_request(request, response,  serverAddress, serverPort); 
+    int rc = send_request(request, &response,  serverAddress, serverPort); 
     return rc;
 }                       
 
@@ -107,7 +107,7 @@ int MFS_Unlink(int pinum, char *name){
     
     request.inum = pinum;
     request.requestType = 7;
-    int rc = send_request(request, response,  serverAddress, serverPort);
+    int rc = send_request(request, &response,  serverAddress, serverPort);
     return rc;
 }                                
 
@@ -115,5 +115,5 @@ int MFS_Shutdown(){
     message_t request;
     message_t response;
     request.requestType = 8;
-    int rc = send_request(request, response,  serverAddress, serverPort);    
+    int rc = send_request(request, &response,  serverAddress, serverPort);    
 }
