@@ -80,7 +80,7 @@ int fs_lookup(int pinum, char *name) {
     if (inode->type != MFS_DIRECTORY) {
         return -1;
     }
-    for (int i = 0; i < inode->size / 32; i++) {
+    for (int i = 0; i < inode->size / 32; i += 32) {
         dir_ent_t *dir = fs_img + inode->direct[i] * UFS_BLOCK_SIZE;    // direct[i] indexes into the entire disk
         if (strcmp(dir->name, name) == 0) {
             return dir->inum;
@@ -172,7 +172,7 @@ int server_start(int port, char* img_path){
     
     /* testing lookup */
     printf("result for pinum=0 .: %d\n", fs_lookup(0, "."));
-    printf("result for pinum=1 ..: %d\n", fs_lookup(0, ".."));
+    printf("result for pinum=0 ..: %d\n", fs_lookup(0, ".."));
 
     /* testing stat */
 
