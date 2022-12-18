@@ -9,6 +9,8 @@
 #define MFS_UNLINK (7)
 #define MFS_SHUTDOWN (8)
 
+#define NAME_SIZE (28)
+
 
 
 #include "mfs.h"
@@ -16,11 +18,12 @@
 
 
 typedef struct {
+    int rc;
     MFS_Stat_t stat;
     int requestType;
     int inum;
     int type;       
-    char name[28];
+    char name[NAME_SIZE];
     char buffer[MFS_BLOCK_SIZE];
     int offset;
     int nbytes;
