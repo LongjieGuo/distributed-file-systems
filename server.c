@@ -215,7 +215,7 @@ int server_start(int port, char* img_path){
 
     // test read
     char str[100];
-    int rc = fs_read(0, str, 0, 64);
+    int rc = fs_read(0, str, 32, 32);
     printf("rc = %d, %s\n", rc, str);
 
     // uncomment for actual use
