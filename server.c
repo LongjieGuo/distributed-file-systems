@@ -106,31 +106,10 @@ int fs_stat(int inum, MFS_Stat_t *m){
     m->type = inode->type;
     m->size = inode->size;
     return 0;
-    /*
-    message_t reply;
-    int inode_block = super_block->inode_region_addr + (inum * sizeof(inode_t)) / UFS_BLOCK_SIZE; 
-
-    //check inode bitmap
-    if(get_bit(inode_bitmap, inum) == 0){
-        reply.inum = -1;
-        UDP_Write(sd, &addr, (char*)&reply, sizeof(message_t));
-        printf("bit map invalid\n");
-        return -1;
-    }else{
-        inode_t inode;
-        read(fd, &inode, sizeof(inode_t));
-        reply.inum = 0;
-        reply.stat.size = inode.size;
-        reply.stat.type = inode.type;
-    }
-    int rc = UDP_Write(sd, &addr, (char*)&reply, sizeof(message_t));
-    return rc;*/
 }
 
 int fs_write(int inum, char *buffer, int offset, int nbytes){
-    message_t reply;
-    UDP_Write(sd, &addr, (char*)&reply, sizeof(message_t));
-    return -1;
+    return 0;
 }
 
 int fs_read(int inum, char *buffer, int offset, int nbytes) {
@@ -146,13 +125,13 @@ int fs_unlink(int inum, char *name) {
 }
 
 int fs_shutdown(){
-    message_t reply;
-    fsync(fd);
-	close(fd);
-    UDP_Write(sd, &addr, (char*)&reply, sizeof(message_t));
-	UDP_Close(port_number);
-    printf("shutdown\n");
-	exit(0);
+    // message_t reply;
+    // fsync(fd);
+	// close(fd);
+    // UDP_Write(sd, &addr, (char*)&reply, sizeof(message_t));
+	// UDP_Close(port_number);
+    // printf("shutdown\n");
+	// exit(0);
 	return 0;
 }
 
@@ -174,7 +153,6 @@ int server_start(int port, char* img_path){
     if (fstat(file_fd, &finfo) != 0) {
         perror("Fstat failed");
     }
-
     fs_img = mmap(NULL, finfo.st_size, MAP_SHARED, PROT_READ | PROT_WRITE, file_fd, 0);
     super_block = (super_t *) fs_img;
     inode_bitmap = fs_img + super_block->inode_bitmap_addr * UFS_BLOCK_SIZE;
@@ -183,14 +161,18 @@ int server_start(int port, char* img_path){
     data = fs_img + super_block->data_region_addr * UFS_BLOCK_SIZE;
     // int max_inodes = super_block->inode_bitmap_len * sizeof(unsigned int) * 8;
     
-    /* testing lookup */
-    printf("result for pinum=0 .: %d\n", fs_lookup(0, "."));
-    printf("result for pinum=0 ..: %d\n", fs_lookup(0, ".."));
-    printf("result for pinum=0 ..: %d\n", fs_lookup(0, "a.jpg"));
+    // testing lookup
+    // printf("result for pinum=0 .: %d\n", fs_lookup(0, "."));
+    // printf("result for pinum=0 ..: %d\n", fs_lookup(0, ".."));
+    // printf("result for pinum=0 ..: %d\n", fs_lookup(0, "a.jpg"));
 
-    /* testing stat */
+    // testing stat
+    MFS_Stat_t stat;
+    int rc = fs_stat(0, &stat);
+    printf("rc = %d, type = %d, size = %d\n", rc, stat.type, stat.size);
 
 
+    // uncomment for actual use
     /*
     while (1) {
         message_t *request = malloc(sizeof(message_t));
