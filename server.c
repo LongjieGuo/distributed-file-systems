@@ -80,7 +80,7 @@ int fs_lookup(int pinum, char *name) {
     if (inode->type != MFS_DIRECTORY) {
         return -1;
     }
-    for (int i = 0; i < inode->size / 32; i += 32) {
+    for (int i = 0; i < inode->size / 32; i++) {
         dir_ent_t *dir = fs_img + inode->direct[i] * UFS_BLOCK_SIZE;    // direct[i] indexes into the entire disk
         if (strcmp(dir->name, name) == 0) {
             return dir->inum;
