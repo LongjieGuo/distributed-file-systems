@@ -80,10 +80,19 @@ int fs_lookup(int pinum, char *name) {
     if (inode->type != MFS_DIRECTORY) {
         return -1;
     }
-    for (int i = 0; i < inode->size / 32; i++) {
-        dir_ent_t *dir = fs_img + inode->direct[i] * UFS_BLOCK_SIZE;    // direct[i] indexes into the entire disk
-        if (strcmp(dir->name, name) == 0) {
-            return dir->inum;
+    int size = inode->size;
+    int bytes_read = 0;
+    for (int i = 0; inode->direct[i] != -1; i++) {
+        dir_ent_t *dir = fs_img + inode->direct[i] * UFS_BLOCK_SIZE; // direct[i] indexes into the entire disk
+        for (int j = 0; j < UFS_BLOCK_SIZE; j += sizeof(dir_ent_t)) {
+            if (strcmp(dir->name, name) == 0) {
+                return dir->inum;
+            }
+            dir++;
+            bytes_read += 32;
+            if (bytes_read == size) {
+                break;
+            }
         }
     }
     return -1;
@@ -93,6 +102,10 @@ int fs_stat(int inum, MFS_Stat_t *m){
     if (get_bit(inode_bitmap, inum) == 0) {
         return -1;
     }
+    inode_t *inode = inodes + inum * sizeof(inode_t);
+    m->type = inode->type;
+    m->size = inode->size;
+    return 0;
     /*
     message_t reply;
     int inode_block = super_block->inode_region_addr + (inum * sizeof(inode_t)) / UFS_BLOCK_SIZE; 
