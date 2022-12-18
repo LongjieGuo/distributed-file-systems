@@ -167,9 +167,9 @@ int server_start(int port, char* img_path){
     // printf("result for pinum=0 ..: %d\n", fs_lookup(0, "a.jpg"));
 
     // testing stat
-    MFS_Stat_t stat;
-    int rc = fs_stat(0, &stat);
-    printf("rc = %d, type = %d, size = %d\n", rc, stat.type, stat.size);
+    // MFS_Stat_t stat;
+    // int rc = fs_stat(0, &stat);
+    // printf("rc = %d, type = %d, size = %d\n", rc, stat.type, stat.size);
 
 
     // uncomment for actual use
