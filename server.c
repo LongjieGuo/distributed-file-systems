@@ -186,6 +186,7 @@ int server_start(int port, char* img_path){
     /* testing lookup */
     printf("result for pinum=0 .: %d\n", fs_lookup(0, "."));
     printf("result for pinum=0 ..: %d\n", fs_lookup(0, ".."));
+    printf("result for pinum=0 ..: %d\n", fs_lookup(0, "a.jpg"));
 
     /* testing stat */
 
