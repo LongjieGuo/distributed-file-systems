@@ -26,6 +26,7 @@ unsigned int *inode_bitmap;
 unsigned int *data_bitmap;
 inode_t *inodes;
 void *data;
+int max_inodes;
 
 
 /**********************
@@ -117,6 +118,9 @@ int fs_stat(int inum, MFS_Stat_t *m){
 }
 
 int fs_write(int inum, char *buffer, int offset, int nbytes){
+    if (inum < 0 || inum > max_inodes) {
+        return -1;
+    }
     if (get_bit(inode_bitmap, inum) == 0) {
         return -1;
     }
@@ -145,7 +149,7 @@ int fs_write(int inum, char *buffer, int offset, int nbytes){
     // only need to consider writing/reading 1/2 block(s)
     int start_block = offset / UFS_BLOCK_SIZE;
     int start_byte = offset - start_block * UFS_BLOCK_SIZE;
-    if (start_byte + nbytes >= UFS_BLOCK_SIZE) {
+    if (start_byte + nbytes > UFS_BLOCK_SIZE) {
         if (inode->direct[start_block] == -1) {
             return -1;
         }
@@ -180,7 +184,7 @@ int fs_read(int inum, char *buffer, int offset, int nbytes) {
 
     int start_block = offset / UFS_BLOCK_SIZE;
     int start_byte = offset - start_block * UFS_BLOCK_SIZE;
-    if (start_byte + nbytes >= UFS_BLOCK_SIZE) {
+    if (start_byte + nbytes > UFS_BLOCK_SIZE) {
         // when spanning across two blocks
         // this code needs further testing
         if (inode->direct[start_block] == -1) {
@@ -220,6 +224,8 @@ int fs_creat(int pinum, int type, char *name) {
     if (inum == -1) {
         return -1;
     }
+
+    // create the new inode
     inode_t *inode = inodes + inum * sizeof(inode_t);
     set_bit(inode_bitmap, inum);
     inode->type = type;
@@ -227,13 +233,14 @@ int fs_creat(int pinum, int type, char *name) {
     for (int i = 0; i < DIRECT_PTRS; i++) {
         inode->direct[i] = -1;
     }
+    // for file
     if (type == UFS_DIRECTORY) {
         inode->size = 2 * sizeof(dir_ent_t);
         int data_block = get_free_data_block();
         if (data_block == -1) {
             return -1;
         }
-        inode->direct[0] = data_block + 4;
+        inode->direct[0] = data_block + super_block->data_region_addr;
         dir_ent_t *dir_ent = fs_img + inode->direct[0] * UFS_BLOCK_SIZE;
         for (int i = 0; i < UFS_BLOCK_SIZE / sizeof(dir_ent_t); i++) {
             dir_ent->inum = -1;
@@ -252,7 +259,7 @@ int fs_creat(int pinum, int type, char *name) {
     // be careful when blocks are not enough
     int i;
     dir_ent_t *dir_ent;
-
+    
     for (i = 0; pinode->direct[i] != - 1; i++) {
         dir_ent = fs_img + pinode->direct[i] * UFS_BLOCK_SIZE;
         for (int j = 0; j < UFS_BLOCK_SIZE / sizeof(dir_ent_t); j++) {
@@ -265,10 +272,17 @@ int fs_creat(int pinum, int type, char *name) {
             dir_ent++;
         }
     }
+
+    // no space left, allocate more
     if (i >= DIRECT_PTRS) {
         return -1;
     }
-    pinode->direct[i] = get_free_data_block() + 4;
+    int free_block = get_free_data_block();
+    if (free_block == -1) {
+        return -1;
+    }
+    set_bit(data_bitmap, free_block);
+    pinode->direct[i] = free_block + super_block->data_region_addr;
     dir_ent = fs_img + pinode->direct[i] * UFS_BLOCK_SIZE;
     for (int j = 0; j < UFS_BLOCK_SIZE / sizeof(dir_ent_t); j++) {
         dir_ent->inum = -1;
@@ -345,7 +359,7 @@ int server_start(int port, char* img_path){
     data_bitmap  = fs_img + super_block->data_bitmap_addr * UFS_BLOCK_SIZE;
     inodes = fs_img + super_block->inode_region_addr * UFS_BLOCK_SIZE;
     data = fs_img + super_block->data_region_addr * UFS_BLOCK_SIZE;
-    // int max_inodes = super_block->inode_bitmap_len * sizeof(unsigned int) * 8;
+    max_inodes = super_block->inode_bitmap_len * sizeof(unsigned int) * 8;
     
     // testing lookup
     // printf("result for pinum=0 .: %d\n", fs_lookup(0, "."));
@@ -373,12 +387,22 @@ int server_start(int port, char* img_path){
     /*
     int rc = fs_creat(0, MFS_REGULAR_FILE, "test");
     int inum = fs_lookup(0, "test");
-    char buffer[100] = "abcdefghi8979796967";
-    fs_write(inum, buffer, 10000, 19);
-    char *buffer_read = malloc(100 * sizeof(char));
-    fs_read(inum, buffer_read, 10000, 19);
+    char buffer[4096] = "abcdefghi8979796967";
+    fs_write(inum, buffer, 49152, 4096);
+    char *buffer_read = malloc(4096 * sizeof(char));
+    fs_read(inum, buffer_read, 49152, 4096);
     printf("%s\n", buffer_read);
     */
+
+    // test dire
+    int rc = fs_creat(0, MFS_DIRECTORY, "0");
+    printf("rc = %d\n", rc);
+    int pinum = fs_lookup(0, "0");
+    printf("pinum = %d\n", pinum);
+    int rc2 = fs_creat(pinum, MFS_REGULAR_FILE, "1");
+    printf("rc2 = %d\n", rc2);
+    int pinum2 = fs_lookup(pinum, "1");
+    printf("pinum2 = %d\n", pinum2);
 
     
     while (1) {
@@ -408,13 +432,15 @@ int server_start(int port, char* img_path){
             memcpy(&response->stat, stat, sizeof(MFS_Stat_t));
         }
         else if(request->request_type ==4){
+            printf("inum: %d offset: %d nbytes: %d\n", request->inum, request->offset, request->nbytes);
             fs_rc = fs_write(request->inum, request->buffer, request->offset, request -> nbytes);
+            printf("write finished, rc = %d\n", fs_rc);
         }
         else if (request->request_type ==5){
             char buffer[BUFFER_SIZE];
             fs_rc = fs_read(request->inum, buffer, request->offset, request -> nbytes);
             // copy buffer
-            strcpy(response->buffer, buffer);
+            memcpy(response->buffer, buffer, request->nbytes);
         }
         else if (request->request_type ==6){
             fs_rc = fs_creat(request->inum, request->type, request->name);
@@ -431,8 +457,9 @@ int server_start(int port, char* img_path){
         msync(fs_img, finfo.st_size, MS_SYNC);
         response->rc = fs_rc;
 
-        if (UDP_Write(sd, &addr, (char*)response, UDP_SIZE) < 0) {
-            printf("server:: failed to send\n");
+        int udp_rc = UDP_Write(sd, &addr, (char*)response, UDP_SIZE);
+        if (udp_rc < 0) {
+            printf("server:: failed to send, rc=%d\n", udp_rc);
             exit(1);
         }
     }
