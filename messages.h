@@ -20,7 +20,7 @@
 typedef struct {
     int rc;
     MFS_Stat_t stat;
-    int requestType;
+    int request_type;
     int inum;
     int type;       
     char name[NAME_SIZE];
