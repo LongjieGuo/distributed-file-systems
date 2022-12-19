@@ -21,7 +21,8 @@ int main(int argc, char *argv[]) {
     char message[BUFFER_SIZE];
 
     char* request = argv[1];
-    MFS_Init("localhost", 2133);
+    MFS_Init("localhost", 1000);
+    int rc = UDP_FillSockAddr(&addrSnd, "localhost", 2133);
 
     if(strcmp(request, "1") == 0){
             MFS_Init("localhost", 2133);
