@@ -25,6 +25,7 @@ struct sockaddr_in addr_send, addr_reci;
 
 
 int send_request(message_t* request, message_t* response, char* address, int port){
+    printf("request type: %d\n", request->request_type);
     rc = UDP_Write(sd, &addr_send,(char*)&request, sizeof(message_t));
     if (rc < 0) {
         printf("client:: failed to send\n"); 

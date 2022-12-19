@@ -372,6 +372,8 @@ int server_start(int port, char* img_path){
 
         //int responseRet;
         //printf("server:: read message [size:%d contents:(%s)]\n", rc, (char*)request);
+        
+        printf("request type on server: %d\n", request->request_type);
 
         if(request->request_type ==2){
             fs_rc = fs_lookup(request->inum, request->name);
