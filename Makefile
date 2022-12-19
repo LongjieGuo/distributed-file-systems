@@ -51,7 +51,7 @@ lib: mfs.o udp.o
 obj: mfs.c udp.c server.c
 	gcc -c -fpic mfs.c 
 	gcc -c -fpic udp.c
-	gcc -c -fpic server.c -g
+	gcc -c -g -fpic server.c
 
 test:
 	sh ~cs537-1/tests/p4/p4-test/runtests.sh -t 1

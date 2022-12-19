@@ -335,7 +335,7 @@ int server_start(int port, char* img_path){
     if (fstat(file_fd, &finfo) != 0) {
         perror("Fstat failed");
     }
-    fs_img = mmap(NULL, finfo.st_size, MAP_SHARED, PROT_READ | PROT_WRITE, file_fd, 0);
+    fs_img = mmap(NULL, finfo.st_size, MAP_PRIVATE, PROT_READ | PROT_WRITE, file_fd, 0);
     super_block = (super_t *) fs_img;
     inode_bitmap = fs_img + super_block->inode_bitmap_addr * UFS_BLOCK_SIZE;
     data_bitmap  = fs_img + super_block->data_bitmap_addr * UFS_BLOCK_SIZE;
@@ -349,9 +349,9 @@ int server_start(int port, char* img_path){
     // printf("result for pinum=0 ..: %d\n", fs_lookup(0, "a.jpg"));
 
     // testing stat
-    // MFS_Stat_t stat;
-    // int rc = fs_stat(0, &stat);
-    // printf("rc = %d, type = %d, size = %d\n", rc, stat.type, stat.size);
+    MFS_Stat_t stat;
+    int rc = fs_stat(0, &stat);
+    printf("rc = %d, type = %d, size = %d\n", rc, stat.type, stat.size);
 
     // test read (sanity)
     // char str[100];
@@ -359,8 +359,8 @@ int server_start(int port, char* img_path){
     // printf("rc = %d, %s\n", rc, str);
 
     // test create
-    int rc = fs_creat(0, MFS_REGULAR_FILE, "hello");
-    printf("rc = %d\n", rc);
+    rc = fs_creat(0, MFS_REGULAR_FILE, "hello");
+    printf("rc = %d result = %d\n", rc, fs_lookup(0, "hello"));
 
     // uncomment for actual use
     
