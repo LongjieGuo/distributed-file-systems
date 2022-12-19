@@ -365,48 +365,50 @@ int server_start(int port, char* img_path){
         int fs_rc;
 
         printf("server:: waiting...\n");
-        int rc = UDP_Read(sd, &addr, (char*) &request, sizeof(message_t));
+        if (UDP_Read(sd, &addr, (char*) &request, sizeof(message_t)) < 0) {
+            printf("server:: failed to receive\n");
+            exit(1);
+        }
 
         //int responseRet;
-        printf("server:: read message [size:%d contents:(%s)]\n", rc, (char*)request);
-        if (rc > 0) {
-            if(request->request_type ==2){
-                fs_rc = fs_lookup(request->inum, request->name);
-            }
-            else if (request->request_type ==3){
-                MFS_Stat_t *stat = malloc(sizeof(MFS_Stat_t));
-                fs_rc = fs_stat(request->inum, stat);
-                // copy stat
-                
-            }
-            else if(request->request_type ==4){
-                fs_rc = fs_write(request->inum, request->buffer, request->offset, request -> nbytes);
-            }
-            else if (request->request_type ==5){
-                char buffer[BUFFER_SIZE];
-                fs_rc = fs_read(request->inum, buffer, request->offset, request -> nbytes);
-                // copy buffer
-            }
-            else if (request->request_type ==6){
-                fs_rc = fs_creat(request->inum, request->type, request->name);
-            }
-            else if (request->request_type ==7){
-                fs_rc = fs_unlink(request->inum, request->name);
-            }
-            else if(request->request_type == 8){
-                fs_rc = fs_shutdown();
-            }
-            else{
-                printf("ERROR NO RC\n");
-            }
-        } else{
-            printf("invalid rc\n");
+        //printf("server:: read message [size:%d contents:(%s)]\n", rc, (char*)request);
+
+        if(request->request_type ==2){
+            fs_rc = fs_lookup(request->inum, request->name);
         }
+        else if (request->request_type ==3){
+            MFS_Stat_t *stat = malloc(sizeof(MFS_Stat_t));
+            fs_rc = fs_stat(request->inum, stat);
+            // copy stat
+        }
+        else if(request->request_type ==4){
+            fs_rc = fs_write(request->inum, request->buffer, request->offset, request -> nbytes);
+        }
+        else if (request->request_type ==5){
+            char buffer[BUFFER_SIZE];
+            fs_rc = fs_read(request->inum, buffer, request->offset, request -> nbytes);
+            // copy buffer
+        }
+        else if (request->request_type ==6){
+            fs_rc = fs_creat(request->inum, request->type, request->name);
+        }
+        else if (request->request_type ==7){
+            fs_rc = fs_unlink(request->inum, request->name);
+        }
+        else if(request->request_type == 8){
+            fs_rc = fs_shutdown();
+        }
+        else{
+            printf("ERROR NO RC\n");
+        }
+        msync(fs_img, finfo.st_size, MS_SYNC);
         response->rc = fs_rc;
 
         // TODO: send response back to the client
-        rc = UDP_Write(sd, &addr, (char*) &response, sizeof(message_t));
-        // if rc invalid
+        if (UDP_Write(sd, &addr, (char*) &response, sizeof(message_t)) < 0) {
+            printf("server:: failed to send\n");
+            exit(1);
+        }
     }
     return 0;
 }

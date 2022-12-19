@@ -28,14 +28,14 @@ struct sockaddr_in addr_send, addr_reci;
 int send_request(message_t* request, message_t* response, char* address, int port){
     
     
-    rc = UDP_Write(sd, &addr_send,(char*)&request, BUFFER_SIZE);
+    rc = UDP_Write(sd, &addr_send,(char*)&request, sizeof(message_t));
 
     if (rc < 0) {
         printf("client:: failed to send\n"); 
         exit(1);
     }
 
-    rc = UDP_Read(sd, &addr_reci,(char*)&response, BUFFER_SIZE);
+    rc = UDP_Read(sd, &addr_reci,(char*)&response, sizeof(message_t));
 
     if (rc < 0) {
         printf("server:: failed to send\n");
