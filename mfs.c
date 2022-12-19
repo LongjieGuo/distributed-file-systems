@@ -72,8 +72,8 @@ int MFS_Stat(int inum, MFS_Stat_t *m){
         return -1;
     }
 
-    m->type = message.type;
-    m->size = message.nbytes;
+    m->type = message.stat.type;
+    m->size = message.stat.size;
     fprintf(stderr,"Stat returned type %d size %d\n",m->type,m->size);
 
     return 0;

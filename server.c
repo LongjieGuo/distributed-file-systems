@@ -369,15 +369,17 @@ int server_start(int port, char* img_path){
     // uncomment for actual use
     
     // test write
+    /*
     int rc = fs_creat(0, MFS_REGULAR_FILE, "test");
     int inum = fs_lookup(0, "test");
-    char buffer[100] = "abcdefghi";
-    fs_write(inum, buffer, 0, 9);
+    char buffer[100] = "abcdefghi8979796967";
+    fs_write(inum, buffer, 10000, 19);
     char *buffer_read = malloc(100 * sizeof(char));
-    fs_read(inum, buffer_read, 0, 9);
+    fs_read(inum, buffer_read, 10000, 19);
     printf("%s\n", buffer_read);
+    */
 
-    /*
+    
     while (1) {
         message_t *request = malloc(sizeof(message_t));
         message_t *response = malloc(sizeof(message_t));
@@ -432,7 +434,7 @@ int server_start(int port, char* img_path){
             printf("server:: failed to send\n");
             exit(1);
         }
-    }*/
+    }
     return 0;
 }
 
