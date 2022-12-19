@@ -18,15 +18,14 @@
 
 int main(int argc, char *argv[]) {
     struct sockaddr_in addrSnd, addrRcv;
-    char message[BUFFER_SIZE];
+    // char message[BUFFER_SIZE];
 
     char* request = argv[1];
-    int sd = MFS_Init("localhost", 1000);
-    int rc = UDP_FillSockAddr(&addrSnd, "localhost", 2133);
+    int sd = MFS_Init("localhost", 2133);
 
     if(strcmp(request, "1") == 0){
             MFS_Init("localhost", 2133);
-        }
+    }
     else if(strcmp(request, "2") == 0){
             MFS_Lookup(2, "test");
     }
