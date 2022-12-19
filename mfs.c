@@ -45,10 +45,7 @@ int MFS_Lookup(int pinum, char *name){
         return -1;
     }
     rc = UDP_Read(sd, &addrRcv, (char *)&message, sizeof(message_t));
-    if(message.rc != 0){
-        return -1;
-    }
-    return message.inum;
+    return message.rc;
 }
 
 int MFS_Stat(int inum, MFS_Stat_t *m){

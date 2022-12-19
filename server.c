@@ -359,10 +359,12 @@ int server_start(int port, char* img_path){
     // printf("rc = %d, %s\n", rc, str);
 
     // test create
-    // rc = fs_creat(0, MFS_REGULAR_FILE, "hello");
-    // printf("rc = %d result = %d\n", rc, fs_lookup(0, "hello"));
-
+    // int rc = fs_creat(0, MFS_REGULAR_FILE, "test");
+    // printf("rc = %d result = %d\n", rc, fs_lookup(0, "test"));
+    // rc = fs_creat(0, MFS_REGULAR_FILE, "test2");
+    // printf("rc = %d result = %d\n", rc, fs_lookup(0, "test2"));
     // uncomment for actual use
+   
     
     while (1) {
         message_t *request = malloc(sizeof(message_t));
