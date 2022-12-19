@@ -349,9 +349,9 @@ int server_start(int port, char* img_path){
     // printf("result for pinum=0 ..: %d\n", fs_lookup(0, "a.jpg"));
 
     // testing stat
-    MFS_Stat_t stat;
-    int rc = fs_stat(0, &stat);
-    printf("rc = %d, type = %d, size = %d\n", rc, stat.type, stat.size);
+    // MFS_Stat_t stat;
+    // int rc = fs_stat(0, &stat);
+    // printf("rc = %d, type = %d, size = %d\n", rc, stat.type, stat.size);
 
     // test read (sanity)
     // char str[100];
@@ -359,66 +359,66 @@ int server_start(int port, char* img_path){
     // printf("rc = %d, %s\n", rc, str);
 
     // test create
-    rc = fs_creat(0, MFS_REGULAR_FILE, "hello");
-    printf("rc = %d result = %d\n", rc, fs_lookup(0, "hello"));
+    // rc = fs_creat(0, MFS_REGULAR_FILE, "hello");
+    // printf("rc = %d result = %d\n", rc, fs_lookup(0, "hello"));
 
     // uncomment for actual use
     
-    // while (1) {
-    //     message_t *request = malloc(sizeof(message_t));
-    //     message_t *response = malloc(sizeof(message_t));
+    while (1) {
+        message_t *request = malloc(sizeof(message_t));
+        message_t *response = malloc(sizeof(message_t));
         
-    //     int fs_rc;
+        int fs_rc;
 
-    //     printf("server:: waiting...\n");
-    //     if (UDP_Read(sd, &addr, (char*) request, UDP_SIZE) < 0) {
-    //         printf("server:: failed to receive\n");
-    //         exit(1);
-    //     }
+        printf("server:: waiting...\n");
+        if (UDP_Read(sd, &addr, (char*) request, UDP_SIZE) < 0) {
+            printf("server:: failed to receive\n");
+            exit(1);
+        }
 
-    //     //int responseRet;
-    //     //printf("server:: read message [size:%d contents:(%s)]\n", rc, (char*)request);
+        //int responseRet;
+        //printf("server:: read message [size:%d contents:(%s)]\n", rc, (char*)request);
         
-    //     printf("request type on server: %d\n", request->request_type);
+        printf("request type on server: %d\n", request->request_type);
 
-    //     if(request->request_type ==2){
-    //         fs_rc = fs_lookup(request->inum, request->name);
-    //     }
-    //     else if (request->request_type ==3){
-    //         MFS_Stat_t *stat = malloc(sizeof(MFS_Stat_t));
-    //         fs_rc = fs_stat(request->inum, stat);
-    //         // copy stat
-    //         memcpy(&response->stat, stat, sizeof(MFS_Stat_t));
-    //     }
-    //     else if(request->request_type ==4){
-    //         fs_rc = fs_write(request->inum, request->buffer, request->offset, request -> nbytes);
-    //     }
-    //     else if (request->request_type ==5){
-    //         char buffer[BUFFER_SIZE];
-    //         fs_rc = fs_read(request->inum, buffer, request->offset, request -> nbytes);
-    //         // copy buffer
-    //         strcpy(response->buffer, buffer);
-    //     }
-    //     else if (request->request_type ==6){
-    //         fs_rc = fs_creat(request->inum, request->type, request->name);
-    //     }
-    //     else if (request->request_type ==7){
-    //         fs_rc = fs_unlink(request->inum, request->name);
-    //     }
-    //     else if(request->request_type == 8){
-    //         fs_rc = fs_shutdown();
-    //     }
-    //     else{
-    //         printf("ERROR NO RC\n");
-    //     }
-    //     msync(fs_img, finfo.st_size, MS_SYNC);
-    //     response->rc = fs_rc;
+        if(request->request_type ==2){
+            fs_rc = fs_lookup(request->inum, request->name);
+        }
+        else if (request->request_type ==3){
+            MFS_Stat_t *stat = malloc(sizeof(MFS_Stat_t));
+            fs_rc = fs_stat(request->inum, stat);
+            // copy stat
+            memcpy(&response->stat, stat, sizeof(MFS_Stat_t));
+        }
+        else if(request->request_type ==4){
+            fs_rc = fs_write(request->inum, request->buffer, request->offset, request -> nbytes);
+        }
+        else if (request->request_type ==5){
+            char buffer[BUFFER_SIZE];
+            fs_rc = fs_read(request->inum, buffer, request->offset, request -> nbytes);
+            // copy buffer
+            strcpy(response->buffer, buffer);
+        }
+        else if (request->request_type ==6){
+            fs_rc = fs_creat(request->inum, request->type, request->name);
+        }
+        else if (request->request_type ==7){
+            fs_rc = fs_unlink(request->inum, request->name);
+        }
+        else if(request->request_type == 8){
+            fs_rc = fs_shutdown();
+        }
+        else{
+            printf("ERROR NO RC\n");
+        }
+        msync(fs_img, finfo.st_size, MS_SYNC);
+        response->rc = fs_rc;
 
-    //     if (UDP_Write(sd, &addr, (char*)response, UDP_SIZE) < 0) {
-    //         printf("server:: failed to send\n");
-    //         exit(1);
-    //     }
-    // }
+        if (UDP_Write(sd, &addr, (char*)response, UDP_SIZE) < 0) {
+            printf("server:: failed to send\n");
+            exit(1);
+        }
+    }
     return 0;
 }
 
