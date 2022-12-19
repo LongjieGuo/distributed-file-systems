@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
             MFS_Init("localhost", 2133);
     }
     else if(strcmp(request, "2") == 0){
-            int rc = MFS_Lookup(0, ".");
+            int rc = MFS_Lookup(0, "random");
             printf("rc: %d\n", rc);
     }
     else if(strcmp(request, "3") == 0){
