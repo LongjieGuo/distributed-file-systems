@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
           MFS_Creat(0, 1, "test");
           int rc = MFS_Lookup(0, "test");
           printf("return code  %d\n", rc);
-    } else if (strcmp(request, "4")) {
+    } else if (strcmp(request, "4") == 0) {
         int rc = MFS_Creat(0, MFS_REGULAR_FILE, "test");
         int inum = MFS_Lookup(0, "test");
         char buffer[100] = "abcdefghi8979796967";

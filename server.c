@@ -137,6 +137,7 @@ int fs_write(int inum, char *buffer, int offset, int nbytes){
             if (free_block == -1) {
                 return -1;
             }
+            set_bit(data_bitmap, free_block);
             inode->direct[i] = free_block + 4;
         }
     }
