@@ -11,7 +11,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define BUFFER_SIZE (1000)
+#define BUFFER_SIZE (4096) //?
 
 int sd;
 struct sockaddr_in addr;
