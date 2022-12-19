@@ -15,7 +15,6 @@
 int MIN_PORT = 20000;
 int MAX_PORT = 40000;
 
-
 char* serv_addr;
 int serv_port;
 int sd;
@@ -26,45 +25,29 @@ struct sockaddr_in addr_send, addr_reci;
 
 
 int send_request(message_t* request, message_t* response, char* address, int port){
-    
-    
     rc = UDP_Write(sd, &addr_send,(char*)&request, sizeof(message_t));
-
     if (rc < 0) {
         printf("client:: failed to send\n"); 
         exit(1);
     }
-
     rc = UDP_Read(sd, &addr_reci,(char*)&response, sizeof(message_t));
-
     if (rc < 0) {
         printf("server:: failed to send\n");
         exit(1);
     }
-
     return response->rc;
 }
 
-
-
-
-
-int MFS_Init(char *hostname, int port){
-    
+int MFS_Init(char *hostname, int port){ 
     srand(time(0));
     int port_num = (rand() % (MAX_PORT - MIN_PORT) + MIN_PORT);
-
-    
-   
     sd = UDP_Open(port_num);
     rc = UDP_FillSockAddr(&addr_send, hostname, port);
     if (rc < 0) {
         return -1;
     }
-    
     return 0;
 }
-
 
 int MFS_Lookup(int pinum, char* name){
     printf("MFS lookup pinum : %d, name: %s\n", pinum, name);
@@ -76,18 +59,12 @@ int MFS_Lookup(int pinum, char* name){
         request.name[i] = name[i];
     } 
     request.name[i] = '\0';
-    
-
-
     rc = send_request(&request, &response, serv_addr, serv_port);
-    
     if (rc < 0) {
         return -1;
     }
-
     return response.inum; 
 }
-
 
 int MFS_Stat(int inum, MFS_Stat_t *stat){
     message_t request,response;
@@ -103,7 +80,6 @@ int MFS_Stat(int inum, MFS_Stat_t *stat){
 }
 
 int MFS_Write(int inum, char *buffer, int offset, int nbytes){
-   
     if(nbytes > 4096) return -1;
     message_t request, response;
     request.request_type = 4;
@@ -113,21 +89,15 @@ int MFS_Write(int inum, char *buffer, int offset, int nbytes){
         request.buffer[i] = buffer[i];
     } 
     request.buffer[i] = '\0';
-      
-   
     request.offset = offset;
     request.nbytes = nbytes;
 
     rc = send_request(&request, &response,  serv_addr, serv_port); 
-    
-   if (rc < 0) {
+    if (rc < 0) {
         return -1;
     }
-
     return response.inum;
 }        
-
-
 
 int MFS_Read(int inum, char *buffer, int offset, int nbytes){
     if(nbytes > 4096) return -1;
@@ -141,18 +111,12 @@ int MFS_Read(int inum, char *buffer, int offset, int nbytes){
     if (rc < 0) {
         return -1;
     }
-
-
     for (i = 0; i < strlen(buffer); i++){
         buffer[i] = response.buffer[i];
     } 
     buffer[i] = '\0';
-    
-    
     return response.inum;
 }         
-
-
 
 int MFS_Creat(int pinum, int type, char *name){
     message_t request,response;
@@ -164,38 +128,28 @@ int MFS_Creat(int pinum, int type, char *name){
         request.name[i] = name[i];
     } 
     request.name[i] = '\0';
-
     rc = send_request(&request, &response,  serv_addr, serv_port); 
-
     if (rc < 0) {
         return -1;
     }
-
     return response.inum;
 }                       
-
 
 int MFS_Unlink(int pinum, char *name){
     message_t request,response;
     request.request_type =7;
     request.inum = pinum;
 
-
     for (i = 0; i < strlen(name); i++){
         request.name[i] = name[i];
     } 
     request.name[i] = '\0';
-
-
     rc = send_request(&request, &response,  serv_addr, serv_port);
-
     if (rc < 0) {
         return -1;
     }
-
     return response.inum;
-}                                
-
+}                               
 
 int MFS_Shutdown(){
     message_t request,response;
