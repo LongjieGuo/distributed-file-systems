@@ -21,10 +21,10 @@ int main(int argc, char *argv[]) {
     char message[BUFFER_SIZE];
 
     char* request = argv[1];
-    MFS_Init("localhost", 10000);
+    MFS_Init("localhost", 2133);
 
     if(strcmp(request, "1") == 0){
-            MFS_Init("localhost", 10000);
+            MFS_Init("localhost", 2133);
         }
     else if(strcmp(request, "2") == 0){
             MFS_Lookup(2, "test");

@@ -406,7 +406,6 @@ int server_start(int port, char* img_path){
         msync(fs_img, finfo.st_size, MS_SYNC);
         response->rc = fs_rc;
 
-        // TODO: send response back to the client
         if (UDP_Write(sd, &addr, (char*)response, sizeof(message_t)) < 0) {
             printf("server:: failed to send\n");
             exit(1);
