@@ -27,11 +27,11 @@ int main(int argc, char *argv[]) {
             MFS_Init("localhost", 2133);
     }
     else if(strcmp(request, "2") == 0){
-            MFS_Lookup(2, "test");
+            int rc = MFS_Lookup(0, ".");
+            printf("rc: %d\n", rc);
     }
     else if(strcmp(request, "3") == 0){
-            MFS_Stat_t* stats = malloc(sizeof(MFS_Stat_t));
-            int rc = MFS_Stat(atoi(argv[2]), stats);
+            
         }//need  elseif .... READ, WRITE , CREAT , UNLINK ALSO 
     else if(strcmp(request, "6") == 0){
           MFS_Creat(0, 1, "test");
