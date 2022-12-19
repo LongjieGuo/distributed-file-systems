@@ -37,6 +37,14 @@ int main(int argc, char *argv[]) {
           MFS_Creat(0, 1, "test");
           int rc = MFS_Lookup(0, "test");
           printf("return code  %d\n", rc);
+    } else if (strcmp(request, "4")) {
+        int rc = MFS_Creat(0, MFS_REGULAR_FILE, "test");
+        int inum = MFS_Lookup(0, "test");
+        char buffer[100] = "abcdefghi8979796967";
+        MFS_Write(inum, buffer, 10000, 19);
+        char *buffer_read = malloc(100 * sizeof(char));
+        MFS_Read(inum, buffer_read, 10000, 19);
+        printf("%s\n", buffer_read);
     }
     else if(strcmp(request, "8") == 0){
             MFS_Shutdown();
