@@ -206,6 +206,10 @@ int fs_creat(int pinum, int type, char *name) {
     if (get_bit(inode_bitmap, pinum) == 0 || strlen(name) >= 28) {
         return -1;
     }
+    inode_t *pinode = inodes + pinum * sizeof(inode_t);
+    if (pinode->type != UFS_DIRECTORY) {
+        return -1;
+    }
     // does not distinguish betwwen file and directory
     if (fs_lookup(pinum, name) != -1) {
         return 0;
@@ -245,7 +249,6 @@ int fs_creat(int pinum, int type, char *name) {
 
     // update parent directory entry
     // be careful when blocks are not enough
-    inode_t *pinode = inodes + pinum * sizeof(inode_t);
     int i;
     dir_ent_t *dir_ent;
 
@@ -364,8 +367,17 @@ int server_start(int port, char* img_path){
     // rc = fs_creat(0, MFS_REGULAR_FILE, "test2");
     // printf("rc = %d result = %d\n", rc, fs_lookup(0, "test2"));
     // uncomment for actual use
-   
     
+    // test write
+    int rc = fs_creat(0, MFS_REGULAR_FILE, "test");
+    int inum = fs_lookup(0, "test");
+    char buffer[100] = "abcdefghi";
+    fs_write(inum, buffer, 0, 9);
+    char *buffer_read = malloc(100 * sizeof(char));
+    fs_read(inum, buffer_read, 0, 9);
+    printf("%s\n", buffer_read);
+
+    /*
     while (1) {
         message_t *request = malloc(sizeof(message_t));
         message_t *response = malloc(sizeof(message_t));
@@ -420,7 +432,7 @@ int server_start(int port, char* img_path){
             printf("server:: failed to send\n");
             exit(1);
         }
-    }
+    }*/
     return 0;
 }
 

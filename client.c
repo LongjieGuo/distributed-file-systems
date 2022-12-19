@@ -3,7 +3,7 @@
 #include "mfs.c"
 #include <time.h>
 #include <stdlib.h>
-#define BUFFER_SIZE (1000)
+#define BUFFER_SIZE (4096)
 
 
 //#define MFS_INIT (1)
