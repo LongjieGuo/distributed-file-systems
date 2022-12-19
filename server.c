@@ -12,6 +12,7 @@
 #include <unistd.h>
 
 #define BUFFER_SIZE (4096) //?
+#define UDP_SIZE (10000)
 
 int sd;
 struct sockaddr_in addr;
@@ -365,7 +366,7 @@ int server_start(int port, char* img_path){
         int fs_rc;
 
         printf("server:: waiting...\n");
-        if (UDP_Read(sd, &addr, (char*) request, sizeof(message_t)) < 0) {
+        if (UDP_Read(sd, &addr, (char*) request, UDP_SIZE) < 0) {
             printf("server:: failed to receive\n");
             exit(1);
         }
@@ -408,7 +409,7 @@ int server_start(int port, char* img_path){
         msync(fs_img, finfo.st_size, MS_SYNC);
         response->rc = fs_rc;
 
-        if (UDP_Write(sd, &addr, (char*)response, sizeof(message_t)) < 0) {
+        if (UDP_Write(sd, &addr, (char*)response, UDP_SIZE) < 0) {
             printf("server:: failed to send\n");
             exit(1);
         }

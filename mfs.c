@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #define BUFFER_SIZE (4096)
 
+#define UDP_SIZE (10000)
+
 int MIN_PORT = 20000;
 int MAX_PORT = 40000;
 
@@ -26,12 +28,12 @@ struct sockaddr_in addr_send, addr_reci;
 
 int send_request(message_t* request, message_t* response, char* address, int port){
     printf("request type: %d\n", request->request_type);
-    rc = UDP_Write(sd, &addr_send,(char*)&request, sizeof(message_t));
+    rc = UDP_Write(sd, &addr_send,(char*)&request, UDP_SIZE);
     if (rc < 0) {
         printf("client:: failed to send\n"); 
         exit(1);
     }
-    rc = UDP_Read(sd, &addr_reci,(char*)&response, sizeof(message_t));
+    rc = UDP_Read(sd, &addr_reci,(char*)&response, UDP_SIZE);
     if (rc < 0) {
         printf("server:: failed to send\n");
         exit(1);
