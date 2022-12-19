@@ -1,5 +1,5 @@
 all: client.c mfs.c server.c udp.h udp.c mfs.h ufs.h mkfs.c 
-	gcc server.c udp.c -o server
+	gcc server.c udp.c -o server -g
 	gcc -c -Wall -fpic mfs.c udp.c
 	gcc -shared -o libmfs.so mfs.o
 	gcc client.c udp.c -o client -L. -lmfs
