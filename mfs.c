@@ -5,12 +5,13 @@
 #include "mfs.h"
 #include "udp.h"
 
-struct sockaddr_in addrSnd,addrRcv;
+struct sockaddr_in arr_send,addr_rcv;
 int sd;
-int server_stat = 0;
+int server_up = 0;
 
 int MFS_Init(char *hostname, int port){
- 
+    
+    server_up = 1;
     
     int MIN_PORT = 20000;
     int MAX_PORT = 40000;
@@ -19,42 +20,45 @@ int MFS_Init(char *hostname, int port){
     int port_num = (rand() % (MAX_PORT - MIN_PORT) + MIN_PORT);
 
     sd  = UDP_Open(port_num);
-    int rc = UDP_FillSockAddr(&addrSnd, hostname, port);
+    int rc = UDP_FillSockAddr(&arr_send, hostname, port);
     assert(rc>-1);
-    server_stat = 1;
     
     return 0;
 }
 
 int MFS_Lookup(int pinum, char *name){
 
+
+    if(server_up ==0){
+        return -1;
+    }
+
     if(pinum < 0 || strlen(name) == 0){
         return -1;
     }
-    if(!server_stat){
-        return -1;
-    }
+  
 
     message_t message;
     message.request_type = MFS_LOOKUP;
     message.inum = pinum;
     strcpy(message.name,name);
 
-    int rc = UDP_Write(sd,&addrSnd,(char*)(&message),sizeof(message_t));
+    int rc = UDP_Write(sd,&arr_send,(char*)(&message),sizeof(message_t));
     if(rc<0){
         return -1;
     }
-    rc = UDP_Read(sd, &addrRcv, (char *)&message, sizeof(message_t));
+    rc = UDP_Read(sd, &addr_rcv, (char *)&message, sizeof(message_t));
+
     return message.rc;
 }
 
-int MFS_Stat(int inum, MFS_Stat_t *m){
+int MFS_Stat(int inum, MFS_Stat_t *stat_msg){
 
-    if(inum < 0 || m == NULL){
+    if(server_up == 0){
         return -1;
     }
 
-    if(!server_stat){
+    if(inum < 0 || stat_msg == NULL){
         return -1;
     }
 
@@ -62,26 +66,35 @@ int MFS_Stat(int inum, MFS_Stat_t *m){
     message.request_type = MFS_STAT;
     message.inum = inum;
 
-    int rc = UDP_Write(sd,&addrSnd,(char*)(&message),sizeof(message_t));
+    int rc = UDP_Write(sd,&arr_send,(char*)(&message),sizeof(message_t));
     if(rc<0){
         return -1;
     }
 
-    rc = UDP_Read(sd, &addrRcv, (char *)&message, sizeof(message_t));
+    rc = UDP_Read(sd, &addr_rcv, (char *)&message, sizeof(message_t));
     if(message.rc!=0) {
         return -1;
     }
 
-    m->type = message.stat.type;
-    m->size = message.stat.size;
-    fprintf(stderr,"Stat returned type %d size %d\n",m->type,m->size);
+    stat_msg->type = message.stat.type;
+    stat_msg->size = message.stat.size;
+    fprintf(stderr,"Stat returned type %d size %d\n",stat_msg->type,stat_msg->size);
 
     return 0;
 }
 
 int MFS_Write(int inum, char *buffer, int offset, int nbytes){
 
-    if(inum < 0 || strlen(buffer) == 0 || offset < 0 || nbytes > 4096){
+    if(server_up == 0){
+        return -1;
+    }
+
+
+    if(offset < 0 || nbytes > 4096){
+        return -1;
+    }
+
+    if(inum < 0 || strlen(buffer) == 0){
         return -1;
     }
 
@@ -92,12 +105,12 @@ int MFS_Write(int inum, char *buffer, int offset, int nbytes){
     message.offset = offset;
     message.nbytes = nbytes;
 
-    int rc = UDP_Write(sd,&addrSnd,(char*)(&message),sizeof(message_t));
+    int rc = UDP_Write(sd,&arr_send,(char*)(&message),sizeof(message_t));
     if(rc<0){
         return -1;
     }
 
-    rc = UDP_Read(sd, &addrRcv, (char *)&message, sizeof(message_t));
+    rc = UDP_Read(sd, &addr_rcv, (char *)&message, sizeof(message_t));
     if(message.rc!=0) {
         return -1;
     }
@@ -106,13 +119,15 @@ int MFS_Write(int inum, char *buffer, int offset, int nbytes){
 
 int MFS_Read(int inum, char *buffer, int offset, int nbytes){
 
+    if(server_up == 0){
+        return -1;
+    } 
+
+
     if(inum < 0 || offset < 0 || nbytes < 0){
         return -1;
     }
 
-    if(!server_stat){
-        return -1;
-    } 
 
     message_t message;
     message.request_type = MFS_READ;
@@ -120,12 +135,12 @@ int MFS_Read(int inum, char *buffer, int offset, int nbytes){
     message.offset = offset;
     message.nbytes = nbytes;
 
-    int rc = UDP_Write(sd,&addrSnd,(char*)(&message),sizeof(message_t));
+    int rc = UDP_Write(sd,&arr_send,(char*)(&message),sizeof(message_t));
     if(rc<0){
         return -1;
     }
 
-    rc = UDP_Read(sd, &addrRcv, (char *) &message, sizeof(message_t));
+    rc = UDP_Read(sd, &addr_rcv, (char *) &message, sizeof(message_t));
     if(message.rc!=0) {
         return -1;
     }
@@ -136,11 +151,17 @@ int MFS_Read(int inum, char *buffer, int offset, int nbytes){
 
 int MFS_Creat(int pinum, int type, char *name){
 
-    if(pinum < 0 || strlen(name) < 0  || type > 1 || type < 0){
+    if(server_up ==0){
         return -1;
     }
 
-    if(!server_stat){
+    if( type < 0){
+        return -1;
+    }
+
+
+
+    if(pinum < 0 || strlen(name) < 0 ){
         return -1;
     }
 
@@ -154,12 +175,12 @@ int MFS_Creat(int pinum, int type, char *name){
     message.type = type;
     strcpy(message.name,name);
 
-    int rc = UDP_Write(sd,&addrSnd,(char*)(&message),sizeof(message_t));
+    int rc = UDP_Write(sd,&arr_send,(char*)(&message),sizeof(message_t));
     if(rc<0){
         return -1;
     }
 
-    rc = UDP_Read(sd, &addrRcv, (char *) &message, sizeof(message_t));
+    rc = UDP_Read(sd, &addr_rcv, (char *) &message, sizeof(message_t));
     if(message.rc!=0) {
         return -1;
     }
@@ -169,25 +190,26 @@ int MFS_Creat(int pinum, int type, char *name){
 
 int MFS_Unlink(int pinum, char *name){
 
+    if(server_up ==0){
+        return -1;
+    }
+
     if(pinum < 0 || strlen(name) < 0){
         return -1;
     }
 
-    if(!server_stat){
-        return -1;
-    }
 
     message_t message;
     message.request_type = MFS_UNLINK;
     message.inum = pinum;
     strcpy(message.name,name);
 
-    int rc = UDP_Write(sd,&addrSnd,(char*)(&message),sizeof(message_t));
+    int rc = UDP_Write(sd,&arr_send,(char*)(&message),sizeof(message_t));
     if(rc<0){
         return -1;
     }
 
-    rc = UDP_Read(sd, &addrRcv, (char *) &message, sizeof(message_t));
+    rc = UDP_Read(sd, &addr_rcv, (char *) &message, sizeof(message_t));
     if(message.rc!=0){
         return -1;
     }
@@ -197,14 +219,14 @@ int MFS_Unlink(int pinum, char *name){
 
 int MFS_Shutdown(){
 
-    if(!server_stat){
+    if(server_up ==0){
         return -1;
     } 
 
     message_t message;
     message.request_type = MFS_SHUTDOWN;
 
-    int rc = UDP_Write(sd, &addrSnd, (char *)(&message), sizeof(message_t));
+    int rc = UDP_Write(sd, &arr_send, (char *)(&message), sizeof(message_t));
     if(rc<0){
         return -1;
     }
