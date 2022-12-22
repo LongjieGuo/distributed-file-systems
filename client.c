@@ -17,60 +17,12 @@
 
 
 int main(int argc, char *argv[]) {
-    struct sockaddr_in addrSnd, addrRcv;
-    // char message[BUFFER_SIZE];
+   //char name[5];
+    MFS_Init("localhost", 2000);
+    //MFS_Creat(0, MFS_DIRECTORY, "test");
+	
+    MFS_Shutdown();
 
-    char* request = argv[1];
-    int sd = MFS_Init("localhost", 2133);
-
-    if(strcmp(request, "1") == 0){
-            MFS_Init("localhost", 2133);
-    }
-    else if(strcmp(request, "2") == 0){
-            int rc = MFS_Lookup(0, "random");
-            printf("rc: %d\n", rc);
-    }
-    else if(strcmp(request, "3") == 0){
-            
-        }//need  elseif .... READ, WRITE , CREAT , UNLINK ALSO 
-    else if(strcmp(request, "6") == 0){
-          MFS_Creat(0, 1, "test");
-          int rc = MFS_Lookup(0, "test");
-          printf("return code  %d\n", rc);
-    } else if (strcmp(request, "4") == 0) {
-        int rc = MFS_Creat(0, MFS_REGULAR_FILE, "test");
-        int inum = MFS_Lookup(0, "test");
-        char buffer[100] = "abcdefghi8979796967";
-        MFS_Write(inum, buffer, 10000, 19);
-        char *buffer_read = malloc(100 * sizeof(char));
-        MFS_Read(inum, buffer_read, 10000, 19);
-        printf("%s\n", buffer_read);
-    }
-    else if(strcmp(request, "8") == 0){
-            MFS_Shutdown();
-        }
-    else{
-         printf("ERROR: failed to find request value"); 
-    }
-
-       
-     //   sprintf(message, "hello world");
-
-   // printf("client:: send message [%s]\n", message);
-   // rc = UDP_Write(sd, &addrSnd, message, BUFFER_SIZE);
- //   if (rc < 0) {
-//	printf("client:: failed to send\n");
-//	exit(1);
- //   }
-
- //   printf("client:: wait for reply...\n");
- //   rc = UDP_Read(sd, &addrRcv, message, BUFFER_SIZE);
-  //  printf("client:: got reply [size:%d contents:(%s)\n", rc, message);
     return 0;
 }
-
-
-
   
-   
-   
