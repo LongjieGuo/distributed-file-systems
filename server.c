@@ -88,6 +88,7 @@ int get_free_data_block() {
 ***********************/
 
 int fs_lookup(int pinum, char *name) {
+    printf("look up");
     if (get_bit(inode_bitmap, pinum) == 0) {
         return -1;
     }
@@ -368,12 +369,6 @@ int server_start(int port, char* img_path){
     data = fs_img + super_block->data_region_addr * UFS_BLOCK_SIZE;
     max_inodes = super_block->inode_bitmap_len * sizeof(unsigned int) * 8;
 
-    fs_creat(0, MFS_DIRECTORY, "test");
-    int pinum = fs_lookup(0, "test");
-    fs_creat(pinum, MFS_DIRECTORY, "0");
-    printf("rc=%d\n", fs_lookup(pinum, "0"));
-    
-    /*
     while (1) {
         message_t *request = malloc(sizeof(message_t));
         message_t *response = malloc(sizeof(message_t));
@@ -424,7 +419,7 @@ int server_start(int port, char* img_path){
             printf("%s", strerror(errno));
             exit(1);
         }
-    }*/
+    }
     return 0;
 }
 
