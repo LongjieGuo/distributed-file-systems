@@ -367,51 +367,6 @@ int server_start(int port, char* img_path){
     inodes = fs_img + super_block->inode_region_addr * UFS_BLOCK_SIZE;
     data = fs_img + super_block->data_region_addr * UFS_BLOCK_SIZE;
     max_inodes = super_block->inode_bitmap_len * sizeof(unsigned int) * 8;
-
-    // testing lookup
-    // printf("result for pinum=0 .: %d\n", fs_lookup(0, "."));
-    // printf("result for pinum=0 ..: %d\n", fs_lookup(0, ".."));
-    // printf("result for pinum=0 ..: %d\n", fs_lookup(0, "a.jpg"));
-
-    // testing stat
-    // MFS_Stat_t stat;
-    // int rc = fs_stat(0, &stat);
-    // printf("rc = %d, type = %d, size = %d\n", rc, stat.type, stat.size);
-
-    // test read (sanity)
-    // char str[100];
-    // int rc = fs_read(0, str, 32, 32);
-    // printf("rc = %d, %s\n", rc, str);
-
-    // test create
-    // int rc = fs_creat(0, MFS_REGULAR_FILE, "test");
-    // printf("rc = %d result = %d\n", rc, fs_lookup(0, "test"));
-    // rc = fs_creat(0, MFS_REGULAR_FILE, "test2");
-    // printf("rc = %d result = %d\n", rc, fs_lookup(0, "test2"));
-    // uncomment for actual use
-    
-    // test write
-    /* 
-    int rc = fs_creat(0, MFS_REGULAR_FILE, "test");
-    int inum = fs_lookup(0, "test");
-    char buffer[4096] = "abcdefghi8979796967";
-    fs_write(inum, buffer, 49152, 4096);
-    char *buffer_read = malloc(4096 * sizeof(char));
-    fs_read(inum, buffer_read, 49152, 4096);
-    printf("%s\n", buffer_read);
-    */
-
-    // test dire
-    /*
-    int rc = fs_creat(0, MFS_DIRECTORY, "0");
-    printf("rc = %d\n", rc);
-    int pinum = fs_lookup(0, "0");
-    printf("pinum = %d\n", pinum);
-    int rc2 = fs_creat(pinum, MFS_REGULAR_FILE, "1");
-    printf("rc2 = %d\n", rc2);
-    int pinum2 = fs_lookup(pinum, "1");
-    printf("pinum2 = %d\n", pinum2);
-    */
     
     
     while (1) {
@@ -420,15 +375,10 @@ int server_start(int port, char* img_path){
         
         int fs_rc;
 
-        printf("server:: waiting...\n");
         if (UDP_Read(sd, &addr, (char*) request, sizeof(message_t)) < 0) {
             printf("server:: failed to receive\n");
             exit(1);
         }
-
-        //int responseRet;
-        //printf("server:: read message [size:%d contents:(%s)]\n", rc, (char*)request);
-        
 
         if(request->request_type ==2){
             fs_rc = fs_lookup(request->inum, request->name);
